@@ -1,0 +1,31 @@
+{
+  "name": "rollbar-stream",
+  "version": "1.0.0",
+  "description": "Stream errors to rollbar",
+  "author": "Good Eggs <open-source@goodeggs.com>",
+  "contributors": [
+    "Michael Kebbekus <michael.kebbekus@goodeggs.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "rollbar"
+  ],
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/goodeggs/rollbar-stream.git"
+  },
+  "homepage": "https://github.com/goodeggs/rollbar-stream",
+  "bugs": "https://github.com/goodeggs/rollbar-stream/issues",
+  "dependencies": {},
+  "devDependencies": {
+    "coffee-script": ">=1.8.x",
+    "mocha": "~1.x.x"
+  },
+  "scripts": {
+    "compile": "coffee --bare --compile --output lib/ src/",
+    "prepublish": "npm run compile",
+    "pretest": "npm run compile",
+    "test": "mocha"
+  }
+}
