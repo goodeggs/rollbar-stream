@@ -17,10 +17,17 @@
   },
   "homepage": "https://github.com/goodeggs/rollbar-stream",
   "bugs": "https://github.com/goodeggs/rollbar-stream/issues",
-  "dependencies": {},
+  "dependencies": {
+    "rollbar": "^0.4.1",
+    "underscore": "^1.7.0"
+  },
   "devDependencies": {
     "coffee-script": ">=1.8.x",
-    "mocha": "~1.x.x"
+    "mocha": "~1.x.x",
+    "stack-trace": "0.0.9",
+    "sinon": "^1.12.2",
+    "fibrous": "^0.3.3",
+    "chai": "^1.10.0"
   },
   "scripts": {
     "compile": "coffee --bare --compile --output lib/ src/",
