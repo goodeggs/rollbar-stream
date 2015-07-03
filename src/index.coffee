@@ -3,6 +3,10 @@ util = require 'util'
 rollbar = require 'rollbar'
 _ = require 'underscore'
 
+# need `.future` monkey-patched onto objects.
+# TODO why does this need fibrous at all, just use callbacks!
+require 'fibrous'
+
 class RollbarStream extends stream.Stream
   constructor: (opts={}) ->
     @writable = true
