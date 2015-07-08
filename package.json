@@ -19,15 +19,15 @@
   "bugs": "https://github.com/goodeggs/rollbar-stream/issues",
   "dependencies": {
     "rollbar": "^0.4.4",
-    "underscore": "^1.7.0",
-    "fibrous": "^0.3.3"
+    "underscore": "^1.7.0"
   },
   "devDependencies": {
     "coffee-script": ">=1.8.x",
     "mocha": "~1.x.x",
     "stack-trace": "0.0.9",
     "sinon": "^1.12.2",
-    "chai": "^1.10.0"
+    "chai": "^1.10.0",
+    "fibrous": "^0.3.3"
   },
   "scripts": {
     "compile": "coffee --bare --compile --output lib/ src/",

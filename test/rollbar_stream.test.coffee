@@ -29,7 +29,7 @@ describe 'RollbarStream', ->
           email: 'foo@bar.com'
           id: '1a2c3ffc4'
 
-        future = stream.write {
+        stream.sync.write {
           msg: 'ack it broke!'
           err:
             message: 'some error message'
@@ -42,7 +42,6 @@ describe 'RollbarStream', ->
           hello: 'world'
         }
 
-        future.wait()
         item = rollbar.api.postItems.lastCall.args[0][0]
 
       it 'sets the error', ->
@@ -75,14 +74,14 @@ describe 'RollbarStream', ->
         fibrous.wait(future)
         fail 'expect a failure'
       catch e
-
-      # node fibers puts in dividers for root exceptions
+        # node fibers puts in dividers for root exceptions
         expect(e.stack).to.match /^\s{4}- - - - -$/gm
         lines = e.stack.split("\n").length - 3 # removing last line plus the separator left in by fibrous
 
         e = RollbarStream.rebuildErrorForReporting(e)
 
         parsed = stackTrace.parse(e)
+        console.log {parsed}
 
         expect(parsed.length).to.eql lines
         expect(parsed[0].fileName).to.contain _(__filename.split('/')).last()

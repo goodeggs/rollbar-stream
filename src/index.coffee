@@ -3,10 +3,6 @@ util = require 'util'
 rollbar = require 'rollbar'
 _ = require 'underscore'
 
-# need `.future` monkey-patched onto objects.
-# TODO why does this need fibrous at all, just use callbacks!
-require 'fibrous'
-
 class RollbarStream extends stream.Stream
   constructor: (opts={}) ->
     @writable = true
@@ -18,7 +14,7 @@ class RollbarStream extends stream.Stream
       rollbar.init opts.token, _(opts).omit('token')
       rollbar
 
-  write: (obj) ->
+  write: (obj, cb) ->
     data = {custom: _(obj).omit('msg', 'err', 'req')} # err, req handled explicitly below
 
     data.title = obj.msg if obj.msg?
@@ -37,10 +33,9 @@ class RollbarStream extends stream.Stream
     else
       req = null
 
-    future = @client.future.handleErrorWithPayloadData(err, data, req)
-    future.resolve (e2) ->
+    @client.handleErrorWithPayloadData err, data, req, (e2) ->
       util.print util.format.call(util, 'Error logging to Rollbar', e2.stack or e2) + "\n" if e2?
-    future
+      cb(e2) if cb?
 
   end: ->
     @emit 'end'
