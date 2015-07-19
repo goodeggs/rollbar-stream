@@ -9,6 +9,7 @@ class RollbarStream extends stream.Stream
 
     opts.branch ?= 'master'
     opts.root ?= process.cwd()
+    opts.host ?= process.env.DYNO
 
     @client = opts.client ? do ->
       rollbar.init opts.token, _(opts).omit('token')
