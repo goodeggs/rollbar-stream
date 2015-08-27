@@ -46,7 +46,7 @@ class RollbarStream extends stream.Stream
 
   @FIBER_ROOT_CAUSE_SEPARATOR: /^\s{4}- - - - -\n/gm
   @rebuildErrorForReporting: (inErr) ->
-    err = _.clone inErr
+    err = Object.create inErr
 
     # Rewrite node_fibers stack traces so they're parseable by common
     # stack parsing libraries.  Node fibers attaches the root cause

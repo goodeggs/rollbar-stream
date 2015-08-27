@@ -12,19 +12,19 @@ describe 'RollbarStream', ->
 
   beforeEach ->
     rollbar.init 'foo' # token
-    sinon.stub(rollbar.api, 'postItems').yields()
+    sinon.stub(rollbar.api, 'postItem').yields()
 
     stream = new RollbarStream({client})
 
   afterEach ->
-    rollbar.api.postItems.restore()
+    rollbar.api.postItem.restore()
 
   describe '::write', ->
 
     describe 'an error with logged-in request data', ->
       {item, user} = {}
 
-      beforeEach ->
+      beforeEach fibrous ->
         user =
           email: 'foo@bar.com'
           id: '1a2c3ffc4'
@@ -42,7 +42,7 @@ describe 'RollbarStream', ->
           hello: 'world'
         }
 
-        item = rollbar.api.postItems.lastCall.args[0][0]
+        item = rollbar.api.postItem.lastCall.args[0]
 
       it 'sets the error', ->
         expect(item.body.trace.exception.message).to.equal 'some error message'
@@ -81,7 +81,6 @@ describe 'RollbarStream', ->
         e = RollbarStream.rebuildErrorForReporting(e)
 
         parsed = stackTrace.parse(e)
-        console.log {parsed}
 
         expect(parsed.length).to.eql lines
         expect(parsed[0].fileName).to.contain _(__filename.split('/')).last()
