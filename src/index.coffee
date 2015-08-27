@@ -35,7 +35,7 @@ class RollbarStream extends stream.Stream
       req = null
 
     @client.handleErrorWithPayloadData err, data, req, (e2) ->
-      util.print util.format.call(util, 'Error logging to Rollbar', e2.stack or e2) + "\n" if e2?
+      process.stderr.write util.format.call(util, 'Error logging to Rollbar', e2.stack or e2) + "\n" if e2?
       cb(e2) if cb?
 
   end: ->
