@@ -16,7 +16,7 @@ class RollbarStream extends stream.Stream
       rollbar
 
   write: (obj, cb) ->
-    data = {custom: _(obj).omit('msg', 'err', 'req')} # err, req handled explicitly below
+    data = custom: _.extend(_(obj).omit('msg', 'err', 'req'), obj.err?.data) # err, req handled explicitly below
 
     data.title = obj.msg if obj.msg?
 

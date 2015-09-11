@@ -33,6 +33,8 @@ describe 'RollbarStream', ->
           msg: 'ack it broke!'
           err:
             message: 'some error message'
+            data:
+              field: 'extra data from boom'
           req:
             url: '/fake'
             headers: {host: 'localhost:3000'}
@@ -61,7 +63,8 @@ describe 'RollbarStream', ->
       it 'dumps everything else in custom', ->
         expect(item.level).not.eql 20 # 'error', set by rollbar client
         expect(item.hello).to.be.undefined
-        expect(item.custom).to.eql level: 20, hello: 'world'
+        expect(item.field).to.be.undefined
+        expect(item.custom).to.eql level: 20, hello: 'world', field: 'extra data from boom'
 
 
   describe 'RollbarStream.rebuildErrorForReporting', ->
