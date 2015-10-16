@@ -33,6 +33,7 @@ describe 'RollbarStream', ->
           msg: 'ack it broke!'
           err:
             message: 'some error message'
+            foobar: 'baz'
             data:
               field: 'extra data from boom'
           req:
@@ -60,12 +61,12 @@ describe 'RollbarStream', ->
       it 'sets the title', ->
         expect(item.title).to.equal 'ack it broke!'
 
-      it 'dumps everything else in custom', ->
+      it 'dumps everything else in custom (including stuff that was on the error object)', ->
         expect(item.level).not.eql 20 # 'error', set by rollbar client
         expect(item.hello).to.be.undefined
         expect(item.field).to.be.undefined
-        expect(item.custom).to.eql level: 20, hello: 'world', field: 'extra data from boom'
-
+        expect(item.foobar).to.be.undefined
+        expect(item.custom).to.eql level: 20, hello: 'world', error: { data: { field: 'extra data from boom' }, foobar: 'baz' }
 
   describe 'RollbarStream.rebuildErrorForReporting', ->
 
