@@ -16,14 +16,13 @@ class RollbarStream extends stream.Stream
       rollbar
 
   write: (obj, cb) ->
-    data = custom: _.extend(_(obj).omit('msg', 'err', 'req'), obj.err?.data) # err, req handled explicitly below
-
-    data.title = obj.msg if obj.msg?
+    customData = _(obj).omit('msg', 'err', 'req')
 
     if obj.err?
       rebuiltErr = RollbarStream.rebuildErrorForReporting(obj.err)
       err = new Error(rebuiltErr.message)
       err.stack = rebuiltErr.stack
+      customData.error = _.omit(obj.err, 'message', 'stack')
     else
       err = new Error(obj.msg)
 
@@ -33,6 +32,10 @@ class RollbarStream extends stream.Stream
       req.connection ?= {} # fake a real request
     else
       req = null
+
+    data =
+      custom: customData
+      title: obj.msg if obj.msg?
 
     @client.handleErrorWithPayloadData err, data, req, (e2) ->
       process.stderr.write util.format.call(util, 'Error logging to Rollbar', e2.stack or e2) + "\n" if e2?
