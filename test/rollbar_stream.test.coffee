@@ -48,8 +48,8 @@ describe 'RollbarStream', ->
         item = rollbar.api.postItem.lastCall.args[0]
 
       it 'sets the error', ->
-        expect(item.body.trace.exception.message).to.equal 'some error message'
-        expect(item.body.trace.exception.class).to.equal 'Error'
+        expect(item.body.trace_chain[0].exception.message).to.equal 'some error message'
+        expect(item.body.trace_chain[0].exception.class).to.equal 'Error'
 
       it 'sets the person', ->
         expect(item.person.email).to.equal user.email
