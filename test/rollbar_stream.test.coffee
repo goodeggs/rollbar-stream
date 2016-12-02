@@ -68,6 +68,25 @@ describe 'RollbarStream', ->
         expect(item.foobar).to.be.undefined
         expect(item.custom).to.eql level: 20, hello: 'world', error: { data: { field: 'extra data from boom' }, foobar: 'baz' }
 
+    describe 'an error with a custom fingerprint', ->
+
+      beforeEach ->
+        sinon.stub(rollbar, 'handleErrorWithPayloadData').yields()
+
+      afterEach ->
+        rollbar.handleErrorWithPayloadData.restore()
+
+      it 'passes through the fingerprint to rollbar', fibrous ->
+        stream.sync.write {
+          msg: 'something I want to fingerpint',
+          fingerprint: '123'
+        }
+        expect(rollbar.handleErrorWithPayloadData.lastCall.args[1]).to.deep.equal {
+          custom: {}
+          title: 'something I want to fingerpint'
+          fingerprint: '123'
+        }
+
   describe 'RollbarStream.rebuildErrorForReporting', ->
 
     it 'rewrites fibrous stacks so stack parsers can grok it ', fibrous ->
