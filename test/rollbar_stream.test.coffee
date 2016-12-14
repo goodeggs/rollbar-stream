@@ -8,18 +8,70 @@ fibrous = require 'fibrous'
 _ = require 'underscore'
 
 describe 'RollbarStream', ->
-  {client, stream} = {}
+  {stream} = {}
 
   beforeEach ->
     rollbar.init 'foo' # token
-    sinon.stub(rollbar.api, 'postItem').yields()
+    stream = new RollbarStream({})
 
-    stream = new RollbarStream({client})
+  describe 'end', ->
+    finishEmitted = null
 
-  afterEach ->
-    rollbar.api.postItem.restore()
+    beforeEach ->
+      finishEmitted = false
+      stream.on 'finish', -> finishEmitted = true
+
+      sinon.stub(rollbar.api, 'postItem')
+
+    afterEach ->
+      rollbar.api.postItem.restore()
+
+    describe 'after a write', ->
+      writeDone = null
+
+      beforeEach ->
+        writeDone = false
+        stream.write {
+          msg: 'ack it broke!'
+          err:
+            message: 'some error message'
+            foobar: 'baz'
+        }, ->
+          writeDone = true
+
+      describe 'with pending response', ->
+        endComplete = null
+
+        beforeEach ->
+          expect(writeDone).to.be.false()
+
+          endComplete = false
+          stream.end ->
+            endComplete = true
+
+        it 'does not call the end callback', ->
+          expect(endComplete).to.be.false()
+
+        it 'does not emit the finish event', ->
+          expect(finishEmitted).to.be.false()
+
+        describe 'with completed response', ->
+          beforeEach ->
+            rollbar.api.postItem.yield()
+
+          it 'calls the end callback', ->
+            expect(endComplete).to.be.true()
+
+          it 'emits the finish event', ->
+            expect(finishEmitted).to.be.true()
 
   describe '::write', ->
+
+    beforeEach ->
+      sinon.stub(rollbar.api, 'postItem').yields()
+
+    afterEach ->
+      rollbar.api.postItem.restore()
 
     describe 'an error with logged-in request data', ->
       {item, user} = {}

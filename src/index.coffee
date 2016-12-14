@@ -3,9 +3,11 @@ util = require 'util'
 rollbar = require 'rollbar'
 _ = require 'underscore'
 
-class RollbarStream extends stream.Stream
+class RollbarStream extends stream.Writable
   constructor: (opts={}) ->
-    @writable = true
+    streamWritableOpts = _({}).extend(opts, objectMode: true)
+    streamWritableOpts.highwaterMark ?= 100
+    super(streamWritableOpts)
 
     opts.branch ?= 'master'
     opts.root ?= process.cwd()
@@ -15,7 +17,7 @@ class RollbarStream extends stream.Stream
       rollbar.init opts.token, _(opts).omit('token')
       rollbar
 
-  write: (obj, cb) ->
+  _write: (obj, encoding, cb) ->
     customData = _(obj).omit('msg', 'err', 'req', 'fingerprint')
 
     if obj.err?
@@ -42,12 +44,6 @@ class RollbarStream extends stream.Stream
     @client.handleErrorWithPayloadData err, data, req, (e2) ->
       process.stderr.write util.format.call(util, 'Error logging to Rollbar', e2.stack or e2) + "\n" if e2?
       cb(e2) if cb?
-
-  end: ->
-    @emit 'end'
-
-  setEncoding: (encoding) ->
-    # noop
 
   @FIBER_ROOT_CAUSE_SEPARATOR: /^\s{4}- - - - -\n/gm
   @rebuildErrorForReporting: (inErr) ->
