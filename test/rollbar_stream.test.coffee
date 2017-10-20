@@ -120,15 +120,20 @@ describe 'RollbarStream', ->
         expect(Rollbar::error.lastCall.args[2].fingerprint).to.eql '123'
 
   describe 'RollbarStream.rebuildErrorForReporting', ->
+    {e} = {}
 
-    it 'rewrites fibrous stacks so stack parsers can grok it ', fibrous ->
+    beforeEach fibrous ->
       f = fibrous ->
         throw new Error('BOOM')
       future = f.future()
       try
         fibrous.wait(future)
         fail 'expect a failure'
-      catch e
+      catch _e
+        e = _e
+
+    if process.version < 'v7' # fibrous stack traces changed in Node 7
+      it '[Node < v7] rewrites fibrous stacks so stack parsers can grok it ', ->
         # node fibers puts in dividers for root exceptions
         expect(e.stack).to.match /^\s{4}- - - - -$/gm
         lines = e.stack.split("\n").length - 3 # removing last line plus the separator left in by fibrous
@@ -142,5 +147,10 @@ describe 'RollbarStream', ->
         expect(parsed[5].fileName).to.eql 'which_caused_the_waiting_fiber_to_throw'
         expect(parsed[5].lineNumber).to.eql null
         expect(parsed[5].columnNumber).to.eql null
+    else
+      it '[Node >= v7] passes through stack traces', ->
+        expect(e.stack).not.to.match /^\s{4}- - - - -$/gm
 
+        e2 = RollbarStream.rebuildErrorForReporting(e)
+        expect(e2).to.eql e
 

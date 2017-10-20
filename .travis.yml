@@ -1,6 +1,7 @@
 language: node_js
 node_js:
-  - '0.10'
+  - 6
+  - 8
 env:
   global:
     secure: "WKrBiM5mGu0q1633qAYcfnxtgwNflWJ0rB2LgYDhz3Ncw5VE+EsfZjqea8jLXDwZxhgns64bFkJQyOYSNpgE6w+vgtOXd5JGT2kxggbIo1eLUreEUhqr+wliuRflEoKhO67CwI1CJS1hE74jrqOX9QjPbYQKyS0w5PvCnrR3t/A="
