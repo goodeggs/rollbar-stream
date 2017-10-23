@@ -1,5 +1,5 @@
 RollbarStream = require '../src'
-rollbar = require 'rollbar'
+Rollbar = require 'rollbar'
 sinon = require 'sinon'
 chai = require 'chai'
 expect = chai.expect
@@ -11,7 +11,6 @@ describe 'RollbarStream', ->
   {stream} = {}
 
   beforeEach ->
-    rollbar.init 'foo' # token
     stream = new RollbarStream({})
 
   describe 'end', ->
@@ -21,10 +20,10 @@ describe 'RollbarStream', ->
       finishEmitted = false
       stream.on 'finish', -> finishEmitted = true
 
-      sinon.stub(rollbar.api, 'postItem')
+      sinon.stub(Rollbar::, 'error')
 
     afterEach ->
-      rollbar.api.postItem.restore()
+      Rollbar::error.restore()
 
     describe 'after a write', ->
       writeDone = null
@@ -57,7 +56,7 @@ describe 'RollbarStream', ->
 
         describe 'with completed response', ->
           beforeEach ->
-            rollbar.api.postItem.yield()
+            Rollbar::error.yield()
 
           it 'calls the end callback', ->
             expect(endComplete).to.be.true()
@@ -68,10 +67,10 @@ describe 'RollbarStream', ->
   describe '::write', ->
 
     beforeEach ->
-      sinon.stub(rollbar.api, 'postItem').yields()
+      sinon.stub(Rollbar::, 'error').yields()
 
     afterEach ->
-      rollbar.api.postItem.restore()
+      Rollbar::error.restore()
 
     describe 'an error with logged-in request data', ->
       {item, user} = {}
@@ -97,58 +96,44 @@ describe 'RollbarStream', ->
           hello: 'world'
         }
 
-        item = rollbar.api.postItem.lastCall.args[0]
+      it 'passes the title', ->
+        expect(Rollbar::error.lastCall.args[2].title).to.equal 'ack it broke!'
 
-      it 'sets the error', ->
-        expect(item.body.trace_chain[0].exception.message).to.equal 'some error message'
-        expect(item.body.trace_chain[0].exception.class).to.equal 'Error'
+      it 'passes the error', ->
+        expect(Rollbar::error.lastCall.args[0]).to.be.an.instanceOf Error
+        expect(Rollbar::error.lastCall.args[0].message).to.eql 'some error message'
 
-      it 'sets the person', ->
-        expect(item.person.email).to.equal user.email
-        expect(item.person.id).to.equal user.id
-
-      it 'sets the request', ->
-        expect(item.request.url).to.equal 'http://localhost:3000/fake'
-
-      it 'sets the title', ->
-        expect(item.title).to.equal 'ack it broke!'
+      it 'passes the request', ->
+        expect(Rollbar::error.lastCall.args[1].url).to.eql '/fake'
 
       it 'dumps everything else in custom (including stuff that was on the error object)', ->
-        expect(item.level).not.eql 20 # 'error', set by rollbar client
-        expect(item.hello).to.be.undefined
-        expect(item.field).to.be.undefined
-        expect(item.foobar).to.be.undefined
-        expect(item.custom).to.eql level: 20, hello: 'world', error: { data: { field: 'extra data from boom' }, foobar: 'baz' }
+        expect(Rollbar::error.lastCall.args[2]).to.eql {title: 'ack it broke!', level: 20, hello: 'world', error: { data: { field: 'extra data from boom' }, foobar: 'baz' }}
 
     describe 'an error with a custom fingerprint', ->
-
-      beforeEach ->
-        sinon.stub(rollbar, 'handleErrorWithPayloadData').yields()
-
-      afterEach ->
-        rollbar.handleErrorWithPayloadData.restore()
 
       it 'passes through the fingerprint to rollbar', fibrous ->
         stream.sync.write {
           msg: 'something I want to fingerpint',
           fingerprint: '123'
         }
-        expect(rollbar.handleErrorWithPayloadData.lastCall.args[1]).to.deep.equal {
-          custom: {}
-          title: 'something I want to fingerpint'
-          fingerprint: '123'
-        }
+        expect(Rollbar::error.lastCall.args[0]).to.eql 'something I want to fingerpint'
+        expect(Rollbar::error.lastCall.args[2].fingerprint).to.eql '123'
 
   describe 'RollbarStream.rebuildErrorForReporting', ->
+    {e} = {}
 
-    it 'rewrites fibrous stacks so stack parsers can grok it ', fibrous ->
+    beforeEach fibrous ->
       f = fibrous ->
         throw new Error('BOOM')
       future = f.future()
       try
         fibrous.wait(future)
         fail 'expect a failure'
-      catch e
+      catch _e
+        e = _e
+
+    if process.version < 'v7' # fibrous stack traces changed in Node 7
+      it '[Node < v7] rewrites fibrous stacks so stack parsers can grok it ', ->
         # node fibers puts in dividers for root exceptions
         expect(e.stack).to.match /^\s{4}- - - - -$/gm
         lines = e.stack.split("\n").length - 3 # removing last line plus the separator left in by fibrous
@@ -162,5 +147,10 @@ describe 'RollbarStream', ->
         expect(parsed[5].fileName).to.eql 'which_caused_the_waiting_fiber_to_throw'
         expect(parsed[5].lineNumber).to.eql null
         expect(parsed[5].columnNumber).to.eql null
+    else
+      it '[Node >= v7] passes through stack traces', ->
+        expect(e.stack).not.to.match /^\s{4}- - - - -$/gm
 
+        e2 = RollbarStream.rebuildErrorForReporting(e)
+        expect(e2).to.eql e
 

@@ -1,6 +1,6 @@
 stream = require 'stream'
 util = require 'util'
-rollbar = require 'rollbar'
+Rollbar = require 'rollbar'
 _ = require 'underscore'
 
 class RollbarStream extends stream.Writable
@@ -9,16 +9,22 @@ class RollbarStream extends stream.Writable
     streamWritableOpts.highwaterMark ?= 100
     super(streamWritableOpts)
 
-    opts.branch ?= 'master'
-    opts.root ?= process.cwd()
-    opts.host ?= process.env.DYNO
-
     @client = opts.client ? do ->
-      rollbar.init opts.token, _(opts).omit('token')
-      rollbar
+      config = _(opts)
+        .chain()
+        .omit('token')
+        .defaults({
+          accessToken: opts.token
+          branch: 'master'
+          root: process.cwd()
+          host: process.env.DYNO
+        })
+        .value()
+      new Rollbar(config)
 
   _write: (obj, encoding, cb) ->
-    customData = _(obj).omit('msg', 'err', 'req', 'fingerprint')
+    customData = _(obj).omit('msg', 'err', 'req')
+    customData.title = obj.msg if obj.msg?
 
     if obj.err?
       rebuiltErr = RollbarStream.rebuildErrorForReporting(obj.err)
@@ -26,7 +32,7 @@ class RollbarStream extends stream.Writable
       err.stack = rebuiltErr.stack
       customData.error = _.omit(obj.err, 'message', 'stack')
     else
-      err = new Error(obj.msg)
+      err = obj.msg
 
     if obj.req?
       req = _.clone obj.req
@@ -35,13 +41,7 @@ class RollbarStream extends stream.Writable
     else
       req = null
 
-    data =
-      custom: customData
-      title: obj.msg if obj.msg?
-
-    data.fingerprint = obj.fingerprint if obj.fingerprint?
-
-    @client.handleErrorWithPayloadData err, data, req, (e2) ->
+    @client.error err, req, customData, (e2) ->
       process.stderr.write util.format.call(util, 'Error logging to Rollbar', e2.stack or e2) + "\n" if e2?
       cb(e2) if cb?
 
