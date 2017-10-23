@@ -1,6 +1,6 @@
 {
   "name": "rollbar-stream",
-  "version": "2.7.0",
+  "version": "3.0.0",
   "description": "Stream errors to rollbar",
   "author": "Good Eggs <open-source@goodeggs.com>",
   "contributors": [
