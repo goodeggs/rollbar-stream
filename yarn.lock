@@ -197,8 +197,8 @@ request-ip@~2.0.1:
     is_js "^0.9.0"
 
 rollbar@^2.2.10:
-  version "2.2.10"
-  resolved "https://registry.yarnpkg.com/rollbar/-/rollbar-2.2.10.tgz#ef9ac02186f30e2ab1ab62b3b93599e12ea0b67c"
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/rollbar/-/rollbar-2.3.2.tgz#2c148be59e55ecdfe1beee5d7f3c3d0203e5dc76"
   dependencies:
     async "~1.2.1"
     console-polyfill "0.3.0"
