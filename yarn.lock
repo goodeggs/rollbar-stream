@@ -86,8 +86,8 @@ fibrous@^0.3.3:
     fibers ">=0.6.7"
 
 find@^0.2.4:
-  version "0.2.7"
-  resolved "https://registry.yarnpkg.com/find/-/find-0.2.7.tgz#7afbd00f8f08c5b622f97cda6f714173d547bb3f"
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/find/-/find-0.2.9.tgz#4b73f1ff9e56ad91b76e716407fe5ffe6554bb8c"
   dependencies:
     traverse-chain "~0.1.0"
 
@@ -198,7 +198,7 @@ request-ip@~2.0.1:
 
 rollbar@2.3.9:
   version "2.3.9"
-  resolved "https://registry.npmjs.org/rollbar/-/rollbar-2.3.9.tgz#46dc6c5531177ae282c8622ad8e930dad9cf2305"
+  resolved "http://registry.npmjs.org/rollbar/-/rollbar-2.3.9.tgz#46dc6c5531177ae282c8622ad8e930dad9cf2305"
   dependencies:
     async "~1.2.1"
     console-polyfill "0.3.0"
